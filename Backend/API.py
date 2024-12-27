@@ -28,28 +28,40 @@ class Retrieve(BaseModel):
     amount: float
     transaction_type: str
     notes: str
+
 #pydantic model for analytics
 class summary(BaseModel):
     start_date : date
     end_date:date
-class analytics(BaseModel):
 
+class analytics(BaseModel):
     Month : str
     total_sum :float
 
 class DeleteTransactionRequest(BaseModel):
-    transaction_id: List[int]
+    transaction_ids: List[int]
+
+class updateTransaction(BaseModel):
+    user_name: str
+    category: str
+    subcategory: str
+    amount: float
+    transaction_type: str
+    transaction_date:str
+    transaction_id:int
+    notes: Optional[str] = None
+
+
 
 #insert data API
 @app.post("/expenses/{expense_date}")
-def add_transactions(expense_date: date, transactions: List[Transaction]):
+def add_transactions(expense_date: date, transaction: Transaction):
     try:
         # Set the transaction date
         transaction_date = expense_date
 
         # Insert data into the database for each transaction
-        for transaction in transactions:
-            db_helper.insert_data(
+        db_helper.insert_data(
                 user_name=transaction.user_name,
                 category=transaction.category,
                 subcategory=transaction.subcategory,
@@ -57,7 +69,7 @@ def add_transactions(expense_date: date, transactions: List[Transaction]):
                 transaction_type=transaction.transaction_type,
                 transaction_date=transaction_date,
                 notes=transaction.notes
-            )
+            )     
 
         # Return a success response after processing all transactions
         return {"message": "Transactions added successfully!"}
@@ -98,18 +110,18 @@ def get_month_analytics():
 
 
 
-@app.delete("/expenses/{expense_date}/delete")
-def delete_transaction(expense_date: date, request: DeleteTransactionRequest):
+@app.delete("/expenses")
+def delete_transaction(request: DeleteTransactionRequest):
     # The request will automatically be parsed into the DeleteTransactionRequest model
-    transaction_id = request.transaction_id
+    transaction_ids = request.transaction_ids
 
     # Check if transaction_ids is empty
-    if not transaction_id:
+    if not transaction_ids:
         return {"message": "No transaction IDs provided for deletion"}, 400
 
     try:
         # Call the delete_data function with the date and list of IDs
-        success = db_helper.delete_data(expense_date, transaction_id)
+        success = db_helper.delete_data(transaction_ids)
         if success == 200:
             return {"message": "Transactions deleted successfully!"}
         elif success == 400:
@@ -126,4 +138,37 @@ def delete_transaction(expense_date: date, request: DeleteTransactionRequest):
         # Return detailed error message in the response
         error_details = traceback.format_exc()
         return {"message": f"An error occurred: {str(e)}", "details": error_details}, 500
+    
 
+@app.put("/expenses/update")
+def update_transaction(request: updateTransaction):
+    # The request will automatically be parsed into the DeleteTransactionRequest model
+    transaction_id = request.transaction_id
+
+    # Check if transaction_ids is empty
+    if not transaction_id:
+        return {"message": "No transaction IDs provided for deletion"}, 400
+    try :
+        db_helper.update_data(
+                transaction_id=transaction_id,
+                user_name=request.user_name,
+                category=request.category,
+                subcategory=request.subcategory,
+                amount=request.amount,
+                transaction_type=request.transaction_type,
+                transaction_date=request.transaction_date,
+                notes=request.notes
+            )
+        return {"message": "Successfully updated"}
+    except Exception as e:
+        raise e
+
+ #retriving min and maximum date for tab2   
+@app.get("/min_date")
+def get_min_date():
+    min_date  = db_helper.min_date()  # Call the function to get the min and max dates from the database
+    return min_date  # Return the min and max dates as a dictionary
+@app.get("/max_date")
+def get_max_date():
+    max_date  = db_helper.max_date()  # Call the function to get the min and max dates from the database
+    return max_date  # Return the min and max dates as a dictionary

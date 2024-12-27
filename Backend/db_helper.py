@@ -24,8 +24,7 @@ def fetch_all():
     with get_db_cursor() as cursor:
         cursor.execute("SELECT * FROM Transactions")
         results = cursor.fetchall()
-        for result in results:
-            return(result)
+        return results
 
 #fetching all data filtered by date
 def fetch_all_date(transaction_date):
@@ -51,6 +50,7 @@ def fetch_all_by_user(user_name):
             return a
         else:
             return (f"No result found for {user_name}")
+        
 #Inserting data
 def insert_data(user_name, category, subcategory, amount, transaction_type, transaction_date, notes):
     with get_db_cursor(commit=True) as cursor:
@@ -113,28 +113,29 @@ def update_data(transaction_id, user_name=None, category=None, subcategory=None,
         query = '''
         UPDATE Transactions
         SET user_name = COALESCE(%s, user_name),
-            category = COALESCE(%s, category_name),
-            subcategory = COALESCE(%s, subcategory_name),
+            category = COALESCE(%s, category),
+            subcategory = COALESCE(%s, subcategory),
             amount = COALESCE(%s, amount),
             transaction_type = COALESCE(%s, transaction_type),
             transaction_date = COALESCE(%s, transaction_date),
-            notes = COALESCE(%s, Note)
+            notes = COALESCE(%s, notes)
         WHERE transaction_id = %s
         '''
-        values = ( transaction_id,user_name, category, subcategory, amount, transaction_type, transaction_date, notes)
-        try:
-            cursor.execute(query, values)
+        values = (user_name, category, subcategory, amount, transaction_type, transaction_date, notes,transaction_id)
+        cursor.execute(query, values)
+        rows_affected = cursor.rowcount
+        if rows_affected > 0:
             print(f"Transaction {transaction_id} updated successfully!")
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
+            return 200  # HTTP 200 OK if rows were deleted
+        else:
+            raise Exception("No rows affected.")
+        
 #analysis by category
 def analytics(start_date,end_date):
     a = []
     with get_db_cursor() as cursor:
         query = ('''SELECT category ,sum(amount) as total_sum FROM Transactions WHERE transaction_date BETWEEN %s AND %s 
-        AND transaction_type = 'Debit'
-        
-                 GROUP BY category''')
+        AND transaction_type = 'Debit' GROUP BY category''')
         params = (start_date,end_date)
         cursor.execute(query, params)
         results = cursor.fetchall()
@@ -160,20 +161,14 @@ def analytics_year():
         a.append(answer)
     return a
 
-
-def delete_data(expense_date, transaction_id):
+#deleting data by transaction_id
+def delete_data(transaction_ids):
     with get_db_cursor(commit=True) as cursor:
         # Handle case where transaction_ids has only one element
-        if len(transaction_id) == 1:
-            # Use a single placeholder for a single transaction_id
-            query = "DELETE FROM Transactions WHERE transaction_date = %s AND transaction_id = %s"
-            params = (expense_date, transaction_id[0])  # Only one ID, so no need for IN clause
-        else:
-            # Dynamically create placeholders for the IN clause for multiple IDs
-            format_strings = ','.join(['%s'] * len(transaction_id))
-            query = f"DELETE FROM Transactions WHERE transaction_date = %s AND transaction_id IN ({format_strings})"
-            params = [expense_date] + transaction_id
-
+        format_strings = ','.join(['%s'] * len(transaction_ids))
+        query = f"DELETE FROM Transactions WHERE transaction_id IN ({format_strings})"
+        params = transaction_ids
+        
         try:
             # Execute the query with the correct parameters
             cursor.execute(query, tuple(params))
@@ -190,13 +185,33 @@ def delete_data(expense_date, transaction_id):
             print(f"Error: {err}")
             return 500  # HTTP 500 Internal Server Error in case of an error
 
+#minimum and maximum date
+def min_date():
+    with get_db_cursor() as cursor:
+        query = "SELECT MIN(transaction_date) as min_date from transactions"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        min_date = result['min_date']
+        return min_date
 
+def max_date():
+    with get_db_cursor() as cursor:
+        query = "SELECT MAX(transaction_date) as max_date from transactions"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        max_date = result['max_date']
+        return max_date
 if __name__ == '__main__':
+
+   print(min_date())
+
+
+    
 
    #print(fetch_all_date("2024-11-27"))
 
 
-  insert_data("Alice", "Food", "Groceries", "500", "Debit", "2024-12-03", "Monthly grocery ")
+  #insert_data("Alice", "Food", "Groceries", "500", "Debit", "2024-12-03", "Monthly grocery ")
 
 
 

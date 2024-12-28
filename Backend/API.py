@@ -42,13 +42,13 @@ class DeleteTransactionRequest(BaseModel):
     transaction_ids: List[int]
 
 class updateTransaction(BaseModel):
+    transaction_id:int
     user_name: str
     category: str
     subcategory: str
     amount: float
     transaction_type: str
     transaction_date:str
-    transaction_id:int
     notes: Optional[str] = None
 
 
@@ -143,14 +143,14 @@ def delete_transaction(request: DeleteTransactionRequest):
 @app.put("/expenses/update")
 def update_transaction(request: updateTransaction):
     # The request will automatically be parsed into the DeleteTransactionRequest model
-    transaction_id = request.transaction_id
+    #transaction_id = request.transaction_id
 
     # Check if transaction_ids is empty
-    if not transaction_id:
+    if not request.transaction_id:
         return {"message": "No transaction IDs provided for deletion"}, 400
     try :
         db_helper.update_data(
-                transaction_id=transaction_id,
+                transaction_id=request.transaction_id,
                 user_name=request.user_name,
                 category=request.category,
                 subcategory=request.subcategory,

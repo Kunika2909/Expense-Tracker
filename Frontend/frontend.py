@@ -1,4 +1,4 @@
-import tab_1
+#import tab_1
 import add_expense as ae
 import tab_2
 import tab_3

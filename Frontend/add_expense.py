@@ -33,7 +33,7 @@ class AddExpense:
         self.expenses = self.load_data()
         
         col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(
-            [1.5, 2, 2, 1.5, 2, 2, 2, 2]
+            [1.5, 2, 2, 1.5, 2, 2, 1, 1]
         )
 
         with col1:
@@ -54,10 +54,9 @@ class AddExpense:
             st.markdown("**Update**")
 
         rows_to_delete = []
-        rows_to_update = []
 
         for i, expense in enumerate(self.expenses):
-            col1, col2, col3, col4, col5, col6, col7, col8 = st.columns([1.5, 2, 2, 1.5, 2, 2, 2, 2])
+            col1, col2, col3, col4, col5, col6, col7, col8 = st.columns([1.5, 2, 2, 1.5, 2, 2, 1, 1])
 
             with col1:
                 name = st.selectbox(
@@ -118,7 +117,9 @@ class AddExpense:
                     rows_to_delete.append(expense["transaction_id"])
 
             with col8:
-                if st.button(f"Update {expense['transaction_id']}", key=f"update_{expense['transaction_id']}"):
+                update_button = st.button(f"Update", key=f"update_{expense['transaction_id']}")
+                updated_expense = {}
+                if update_button:
                     updated_expense = {
                         "transaction_id": expense['transaction_id'],
                         "user_name": name,
@@ -126,10 +127,13 @@ class AddExpense:
                         "subcategory": subcategory,
                         "amount": amount,
                         "transaction_type": transaction_type,
-                        "transaction_date": self.selected_date,
+                        "transaction_date": self.selected_date.strftime("%Y-%m-%d"),
                         "notes": notes,
                     }
-                    rows_to_update.append(updated_expense)
+                    self.handle_update(updated_expense)
+                    #rows_to_update.append(updated_expense)
+                    #st.write(rows_to_update)
+                    #print(f"for update",rows_to_update)
         add_expense_button = st.button('Add new expense', key='add_expense')
         if("show_add_expense" not in st.session_state):
             st.session_state["show_add_expense"]=False
@@ -137,7 +141,6 @@ class AddExpense:
             st.session_state["show_add_expense"] = True
             self.add_select_box()
         self.handle_deletion(rows_to_delete)
-        self.handle_update(rows_to_update)
 
     def add_select_box(self):
         # # Columns for inputs
@@ -181,15 +184,17 @@ class AddExpense:
             )
             if response.status_code == 200:
                 st.success("Selected expenses deleted successfully!")
+                st.session_state[f"expenses_{self.selected_date}"] = self.load_data()
                 st.rerun()
             else:
                 st.error(f"Failed to delete expenses. Error: {response.text}")
 
-    def handle_update(self, rows_to_update):
-        if rows_to_update and st.button("Update Selected Rows"):
-            response = requests.put(f"{API_URL}/expenses/update", json=rows_to_update)
+    def handle_update(self, data):
+        if data:
+            response = requests.put(f"{API_URL}/expenses/update", json=data)
+            print(response)
             if response.status_code == 200:
-                st.success("Selected expenses updated successfully!")
+                #st.success("Selected expenses updated successfully!")
                 st.session_state[f"expenses_{self.selected_date}"] = self.load_data()
                 st.rerun()
             else:

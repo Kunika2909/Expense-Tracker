@@ -124,7 +124,7 @@ def update_data(transaction_id, user_name=None, category=None, subcategory=None,
         values = (user_name, category, subcategory, amount, transaction_type, transaction_date, notes,transaction_id)
         cursor.execute(query, values)
         rows_affected = cursor.rowcount
-        if rows_affected > 0:
+        if rows_affected >= 0:
             print(f"Transaction {transaction_id} updated successfully!")
             return 200  # HTTP 200 OK if rows were deleted
         else:

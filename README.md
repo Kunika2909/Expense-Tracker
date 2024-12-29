@@ -18,7 +18,7 @@ This project is a Python-based application designed to streamline data managemen
     - View spending trends by category within custom date ranges
       
 - **Tab 3: Dashboard**
-    - Refresh data and filter by month/year.
+    - Filter by month/year.
     - Highlight top spender.
     - KPIs: Total spend, Total earn, and Net balance.
     - Heatmap calendar for monthly debit flow.

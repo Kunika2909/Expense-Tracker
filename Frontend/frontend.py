@@ -1,5 +1,5 @@
 #import tab_1
-import add_expense as ae
+import tab_1 as ae
 import tab_2
 import tab_3
 import streamlit as st
@@ -50,17 +50,20 @@ class ExpenseTrackerApp:
         st.markdown("*Current tab*")
         tab = st.selectbox(
             "Choose a Tab", 
-            ["Add/Update Expense", "Analytics by category", "Dashboard"],
+            ["Add/Update Expense", "Analytics by category", "Dashboard"],index = 2,
             label_visibility="collapsed"
         )
 
         if tab == "Add/Update Expense":
             ae.AddExpense().run()
             print(st.session_state)
+
         elif tab == "Analytics by category":
-            tab_2.tab_2()
+           tab_2.MonthAnalytics().run()
+
         elif tab == "Dashboard":
-            tab_3.tab_3()
+            tab_3.Dashboard().run()
+           
 
     def run(self):
         """Run the application."""

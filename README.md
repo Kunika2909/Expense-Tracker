@@ -59,6 +59,7 @@ CREATE DATABASE expense_tracking
 ```
 4) Utilised Chatgpt for creating data and storing it in csv
    [Download transactions.csv](/Expense-Tracker/Data/transactions.csv)
+   
 5) In Mysql Workbench navigate to created database and run :-
    ```
     CREATE TABLE expense_tracking.transactions (
@@ -76,13 +77,16 @@ CREATE DATABASE expense_tracking
     CHECK (transaction_type IN ('Credit', 'Debit')) );
    ```
 
-7) In the terminal run :-
+6) In the terminal run :-
+   - _This will load your transactions.csv data to database_
 ```
-LOAD DATA LOCAL INFILE 'path/to/file/transactions.csv' -> INTO TABLE expense_tracking.transactions -> FIELDS TERMINATED BY ',' -> LINES TERMINATED BY '\n' -> IGNORE 1 ROWS -> (transaction_id, user_name, category, subcategory, amount, transaction_type, @transaction_date, year, month, notes) -> SET transaction_date = STR_TO_DATE(@transaction_date, '%Y-%m-%d');
+LOAD DATA LOCAL INFILE 'path/to/file/expense-tracker-folder/transactions.csv' -> INTO TABLE expense_tracking.transactions -> FIELDS TERMINATED BY ',' -> LINES TERMINATED BY '\n' -> IGNORE 1 ROWS -> (transaction_id, user_name, category, subcategory, amount, transaction_type, @transaction_date, year, month, notes) -> SET transaction_date = STR_TO_DATE(@transaction_date, '%Y-%m-%d');
 
 ```
 
-8) In new terminal navigate to project folder -
+7) In new terminal navigate to project folder -
+   
+   - _Setting environment for frontend_
 
 ```
 cd/path/to/your/expense-tracker-folder/Frontend
@@ -97,14 +101,16 @@ source venv/bin/activate
 ```
 - Install the Requirements file
 ```
-pip3 install -r requirements.txt
+pip3 install -r ../requirements.txt
 ```
 - Run
 ```
 streamlit run frontend.py
 ```
 
-9) In new terminal navigate to project folder -
+8) In new terminal navigate to project folder -
+    
+   - _Setting environment for Backend_
 ```
 cd/path/to/your/expense-tracker-folder/Backend
 ```
@@ -118,7 +124,7 @@ source venv/bin/activate
 ```
 - Install the Requirements file
 ```
-pip3 install -r requirements.txt
+pip3 install -r ../requirements.txt
 ```
 - Run
 ```

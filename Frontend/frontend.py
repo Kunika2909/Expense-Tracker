@@ -50,7 +50,7 @@ class ExpenseTrackerApp:
         st.markdown("*Current tab*")
         tab = st.selectbox(
             "Choose a Tab", 
-            ["Add/Update Expense", "Analytics by category", "Dashboard"],index = 2,
+            ["Add/Update Expense", "Analytics by category", "Dashboard"],
             label_visibility="collapsed"
         )
 

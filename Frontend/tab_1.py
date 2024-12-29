@@ -183,7 +183,7 @@ class AddExpense:
                 f"{API_URL}/expenses/", json={"transaction_ids": rows_to_delete}
             )
             if response.status_code == 200:
-                st.success("Selected expenses deleted successfully!")
+                #st.success("Selected expenses deleted successfully!")
                 st.session_state[f"expenses_{self.selected_date}"] = self.load_data()
                 st.rerun()
             else:

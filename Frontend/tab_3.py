@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import seaborn as sns
-import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
 import calendar
 
@@ -13,19 +11,21 @@ class Dashboard:
         self.db_url = "mysql+pymysql://root:@127.0.0.1:3306/Expense_tracking"
         self.engine = create_engine(self.db_url)
         self.data = self.load_data()
-        
 
+    #Loading data
     def load_data(self):
         query = """SELECT * FROM transactions;"""
         data = pd.read_sql(query, self.engine)
         data['transaction_date'] = pd.to_datetime(data['transaction_date'], errors='coerce')  # Ensure date is datetime
         return data
     
-    def refreshing_data(self):
-        st.cache_data.clear() # clearing the cache data
-        self.data = self.load_data()
-        st.success("Data refreshed!")
+    #Refreshing data 
+    # def refreshing_data(self):
+    #     st.cache_data.clear() # clearing the cache data
+    #     self.data = self.load_data()
+    #     st.success("Data refreshed!")
 
+    #Filtering data based on selected year and selected month from filters
     def filtering_data(self,year,month):
          # # # Filter data based on selections
         filtered_data = self.data[
@@ -34,12 +34,14 @@ class Dashboard:
             ]
         return filtered_data
     
+    #KPI 
     def kpi_calculation(self,filtered_data):
         Total_earning = filtered_data[filtered_data["transaction_type"] == "Credit"]["amount"].sum()
         # total spending
         Total_spending = filtered_data[filtered_data["transaction_type"] == "Debit"]["amount"].sum()
         # net balance
         Net_balance = Total_earning - Total_spending
+
         # Display KPIs
         empty_col1, col1, col2, col3, empty_col2 = st.columns([1, 9, 9, 9, 1])
         with col1:
@@ -51,32 +53,24 @@ class Dashboard:
         with col3:
             st.text("Net Balance")
             st.subheader(f"₹{Net_balance:,.1f}")
+
     def user_spend(self,filtered_data):
         filtered_transactions = filtered_data[filtered_data['category'] != 'Income']
         data_frame = filtered_transactions.groupby("user_name")["amount"].sum().reset_index()
         data_frame = data_frame.sort_values(by="amount", ascending=True)
+        #Horizontal bar chart
         fig = px.bar(
             data_frame=data_frame,
             x='amount',  # X-axis (amount)
             y='user_name',  # Y-axis (category)
             orientation='h',  # Horizontal orientation
-            title="Who spend the most ?",
-            color = "amount"
-            #color_continuous_scale=["white","red"]
-    
-    
-    
-    
-
-
-
-        )
+            title="Who spend the most ?", #title
+            color = "amount") #color based on amount default blue 
+        
+        #customizing the layout
         fig.update_layout(
         yaxis=dict(title=None) ,
         xaxis = dict(title = None)) # This will hide the y-axis  and x- axis title 
-
-
-
         fig.update_layout(
 
             height=300,  # Adjust height
@@ -87,23 +81,21 @@ class Dashboard:
         # Display the chart in Streamlit
         st.plotly_chart(fig)
 
-
     def category_distribution(self,filtered_data):
-
+        # removing category income 
         category_data = filtered_data[filtered_data['category'] != 'Income'].groupby('category', as_index=False)[
             'amount'].sum()
-
-        # st.write("Category Data:", category_data)
-
-        print(filtered_data)
+        #pie chart
         fig_pie = px.pie(
             category_data,
             values='amount',
             names='category',
             title=f"Category-wise Expense Distribution"
         )
+        #show pie chart
         st.plotly_chart(fig_pie)
-    
+
+    #debit flow calender (heatmap)
     def calender(self,filtered_data,selected_year,selected_month):
         import calendar
         import numpy as np
@@ -192,23 +184,28 @@ class Dashboard:
         # Show the calendar heatmap in Streamlit
         st.plotly_chart(fig_calendar)
 
+    #Contains all the function that needs to be run on UI
     def run(self):
         import datetime
+        #adding data in session_state
         if 'data' not in st.session_state:
             st.session_state['data'] = self.load_data()
             st.session_state['data'] = self.data
-        
-        button = st.button("Refresh Data")
-        if button:
-            self.refreshing_data()
-            st.session_state['data'] = self.data
-        
+        #when refresh button is triggered then :
+        # button = st.button("Refresh Data")
+        # if button:
+        #     self.refreshing_data()
+        #     st.session_state['data'] = self.data
+        #filters
         st.sidebar.header("Filters")
+        #current year and month for setting index
         current_year = datetime.datetime.now().year
-        current_month = pd.Timestamp.today().strftime('%B').strip()
+        current_month = pd.Timestamp.today().strftime('%B').strip() 
 
+        #selection of year and month from filter bar
         selected_year = st.sidebar.selectbox("Year", options=self.data['transaction_date'].dt.year.unique(),index=list(self.data['transaction_date'].dt.year.unique()).index(current_year))
         selected_month = st.sidebar.selectbox("Month", options=self.data['transaction_date'].dt.month_name().unique(),index = list(self.data['transaction_date'].dt.month_name().unique()).index(current_month))
+        #Heading
         st.header(f"Dashboard - {selected_month} | {selected_year}")
 
         filtered_data = self.filtering_data(selected_year,selected_month)

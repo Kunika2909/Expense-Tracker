@@ -74,35 +74,31 @@ def insert_data(user_name, category, subcategory, amount, transaction_type, tran
         except mysql.connector.Error as err:
             print(f"Error: {err}")
 
+#deleting data by transaction_id
+def delete_data(transaction_ids):
+    with get_db_cursor(commit=True) as cursor:
+        # Handle case where transaction_ids has only one element
+        format_strings = ','.join(['%s'] * len(transaction_ids))
+        query = f"DELETE FROM Transactions WHERE transaction_id IN ({format_strings})"
+        params = transaction_ids
+        
+        try:
+            # Execute the query with the correct parameters
+            cursor.execute(query, tuple(params))
+            rows_affected = cursor.rowcount
 
-#deleting data
-# def delete_data(transaction_date, transaction_id):
-#     with get_db_cursor(commit=True) as cursor:
-#
-#         # If only one transaction_id is provided, handle it as a single item tuple
-#         if len(transaction_id) == 1:
-#             format_strings = '%s'  # Just one placeholder
-#         else:
-#             format_strings = ','.join(['%s'] * len(transaction_id))  # Multiple placeholders
-#
-#         query = f"DELETE FROM Transactions WHERE transaction_date = %s AND transaction_id IN ({format_strings})"
-#
-#         # Combine the transaction_date and transaction_ids into a single tuple
-#         params = (transaction_date, *transaction_id)
-#
-#         try:
-#             cursor.execute(query, params)
-#             rows_affected = cursor.rowcount
-#
-#             if rows_affected > 0:
-#                 print(f"Rows affected: {rows_affected}")
-#                 return 200
-#             else:
-#                 print("No rows affected.")
-#                 return 404
-#         except mysql.connector.Error as err:
-#             print(f"Error: {err}")
-#             return 500
+            if rows_affected > 0:
+                print(f"Rows affected: {rows_affected}")
+                return 200  # HTTP 200 OK if rows were deleted
+            else:
+                print("No rows affected.")
+                return 404  # HTTP 404 Not Found if no rows were deleted
+
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return 500  # HTTP 500 Internal Server Error in case of an error
+
+
 
 
 
@@ -161,29 +157,6 @@ def analytics_year():
         a.append(answer)
     return a
 
-#deleting data by transaction_id
-def delete_data(transaction_ids):
-    with get_db_cursor(commit=True) as cursor:
-        # Handle case where transaction_ids has only one element
-        format_strings = ','.join(['%s'] * len(transaction_ids))
-        query = f"DELETE FROM Transactions WHERE transaction_id IN ({format_strings})"
-        params = transaction_ids
-        
-        try:
-            # Execute the query with the correct parameters
-            cursor.execute(query, tuple(params))
-            rows_affected = cursor.rowcount
-
-            if rows_affected > 0:
-                print(f"Rows affected: {rows_affected}")
-                return 200  # HTTP 200 OK if rows were deleted
-            else:
-                print("No rows affected.")
-                return 404  # HTTP 404 Not Found if no rows were deleted
-
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-            return 500  # HTTP 500 Internal Server Error in case of an error
 
 #minimum and maximum date
 def min_date():
@@ -207,12 +180,6 @@ if __name__ == '__main__':
 
 
     
-
-   #print(fetch_all_date("2024-11-27"))
-
-
-  #insert_data("Alice", "Food", "Groceries", "500", "Debit", "2024-12-03", "Monthly grocery ")
-
 
 
 

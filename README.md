@@ -58,7 +58,7 @@ brew services start mysql
 CREATE DATABASE expense_tracking
 ```
 4) Utilised Chatgpt for creating data and storing it in csv
-   [Download transactions.csv](/Expense-Tracker/Data/transactions.csv)
+   [Download transactions.csv](/Data/transactions.csv)
    
 5) In Mysql Workbench navigate to created database and run :-
    ```
